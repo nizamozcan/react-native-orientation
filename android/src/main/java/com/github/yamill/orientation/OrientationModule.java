@@ -1,5 +1,4 @@
 package com.github.yamill.orientation;
-
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -8,7 +7,7 @@ import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.util.Log;
-
+import android.os.Build;
 import com.facebook.common.logging.FLog;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -19,10 +18,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.common.ReactConstants;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 public class OrientationModule extends ReactContextBaseJavaModule implements LifecycleEventListener{
@@ -144,13 +141,23 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
 
     @Override
     public void onHostResume() {
-        final Activity activity = getCurrentActivity();
+       final Activity activity = getCurrentActivity();
 
         if (activity == null) {
             FLog.e(ReactConstants.TAG, "no activity to register receiver");
             return;
         }
-        activity.registerReceiver(receiver, new IntentFilter("onConfigurationChanged"));
+      BroadcastReceiver receiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        // Broadcast işlemi
+    }};
+    IntentFilter filter = new IntentFilter("onConfigurationChanged");
+    if (Build.VERSION.SDK_INT >= 34 && getReactApplicationContext().getApplicationInfo().targetSdkVersion >= 34) {
+    activity.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+    } else {
+    activity.registerReceiver(receiver, filter);
+        }
     }
     @Override
     public void onHostPause() {
